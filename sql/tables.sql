@@ -1,0 +1,1 @@
+CREATE TABLE items (id text primary key, name text, extension text, olscore real, ollscore real, olwscore real);

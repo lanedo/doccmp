@@ -1,0 +1,11 @@
+$def with (items)
+
+Documents:
+
+<table border='1'>
+<tr>
+<th>Document name</th><th>Extension</th><th>Page count</th><th>Import in LO</th><th>LO->LO</th><th>LO->Word</th>
+</tr>
+$for item in items:
+    <tr>$:render.item(item)</tr>
+</table>
