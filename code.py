@@ -40,12 +40,22 @@ class Upload:
 
     def POST(self):
     	form = web.input(doc={})
-    	tempfile = '/tmp/' + form['doc'].filename
+
+        basename = form['doc'].filename.replace(' ', '_')
+    	tempfile = '/tmp/' + basename
     	with open(tempfile, 'wb') as saved:
         	shutil.copyfileobj(form['doc'].file, saved)
-        uid, score, pagecount = document_compare.compare_document(tempfile, '/home/pierre-eric/Projects/webpy/static/')
-        basename, ext = os.path.splitext(form['doc'].filename)
 
+        # Do document comparison
+        outdir = os.getcwd() + '/static/'
+        filename, uid = document_compare.init_document_compare (tempfile, outdir)
+        document_compare.generate_pdf_for_doc(filename, uid, outdir)
+        document_compare.generate_fullres_images_from_pdf(filename, uid, outdir)
+        score, pagecount = document_compare.compare_pdf_using_images(filename, uid, outdir)
+
+        b, ext = os.path.splitext(form['doc'].filename)
+
+        # Insert into base
         config.DB.insert('items', id=uid, name=basename, pagecount=pagecount, extension=ext,olscore=score[0],ollscore=score[1], olwscore=score[2])
 
         return render.base(view.listing())
