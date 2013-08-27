@@ -7,7 +7,8 @@ import os
 urls = (
     '/', 'index',
     '/upload', 'Upload',
-    '/details', 'details'
+    '/details', 'details',
+    '/update', 'update'
 )
 
 class index:
@@ -27,6 +28,23 @@ class details:
 				return render.base(view.listing())
 			row = rows[0]
 			return render.details(row)
+
+class update:
+    def GET(self):
+        i = web.input(uid=None)
+        if i.uid == None:
+            return render.base(view.listing())
+        else:
+            results = config.DB.select('items', dict(n=str(i.uid)), where="id=$n")
+            rows = results.list()
+            print ("Row count: " + str(len(rows)))
+            if len(rows) > 0:
+                outdir = os.getcwd() + '/static/'
+                row = rows[0]
+                score, pagecount = document_compare.compare_pdf_using_images(row['id'], outdir)
+                config.DB.update('items', where='id="' + str(row['id']) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2])
+            
+            return render.base(view.listing())
 
 class Upload:
     def GET(self):
@@ -48,15 +66,16 @@ class Upload:
 
         # Do document comparison
         outdir = os.getcwd() + '/static/'
-        filename, uid = document_compare.init_document_compare (tempfile, outdir)
+        uid = document_compare.init_document_compare (tempfile, outdir)
+        filename = uid + '.docx'
         document_compare.generate_pdf_for_doc(filename, uid, outdir)
         document_compare.generate_fullres_images_from_pdf(filename, uid, outdir)
-        score, pagecount = document_compare.compare_pdf_using_images(filename, uid, outdir)
+        score, pagecount = document_compare.compare_pdf_using_images(uid, outdir)
 
         b, ext = os.path.splitext(form['doc'].filename)
 
         # Insert into base
-        config.DB.insert('items', id=uid, name=basename, pagecount=pagecount, extension=ext,olscore=score[0],ollscore=score[1], olwscore=score[2])
+        config.DB.insert('items', id=uid, name=b, pagecount=pagecount, extension=ext,olscore=score[0],ollscore=score[1], olwscore=score[2])
 
         return render.base(view.listing())
 
