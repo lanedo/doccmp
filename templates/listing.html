@@ -2,10 +2,28 @@ $def with (items)
 
 Documents:
 
-<table border='1'>
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+ 
+<!-- jQuery -->
+<script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.2.min.js"></script>
+ 
+<!-- DataTables -->
+<script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+	$$(document).ready(function() {
+	    $$('#table_id').dataTable();
+	} );
+</script>
+
+<table id="table_id" border='1'>
+<thead>
 <tr>
 <th>Document name</th><th>Extension</th><th>Page count</th><th>Import in LO</th><th>LO->LO</th><th>LO->Word</th>
 </tr>
+</thead>
+<tbody>
 $for item in items:
     <tr>$:render.item(item)</tr>
+</tbody>
 </table>
