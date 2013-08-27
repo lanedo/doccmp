@@ -70,8 +70,6 @@ def init_document_compare(absolute_path, outdir):
         print "File '%s' doesn't exist. Aborting" % absolute_path
         return -1.
 
-    filename = os.path.basename(absolute_path)
-
     # First, we need a id for this file
     file_id = hashlib.md5(open(absolute_path, 'rb').read()).hexdigest()
     full_path = outdir + file_id + '/'
@@ -82,9 +80,9 @@ def init_document_compare(absolute_path, outdir):
         create_folder_hierarchy_in(full_path)
         
     # Copy file to folder
-    shutil.copy2(absolute_path, full_path)
+    shutil.copy(absolute_path, full_path + file_id + '.docx')
 
-    return filename, file_id
+    return file_id
 
 def generate_pdf_for_doc(filename, file_id, outdir):
     full_path = outdir + file_id + '/'
@@ -115,7 +113,7 @@ def generate_fullres_images_from_pdf(filename, file_id, outdir):
             full_path + '/' + folder + '/' + filename_png)
         os.system(cmd)
 
-def compare_pdf_using_images(filename, file_id, outdir):
+def compare_pdf_using_images(file_id, outdir):
     full_path = outdir + file_id + '/'
 
     total_scores = []
@@ -154,13 +152,15 @@ def compare_pdf_using_images(filename, file_id, outdir):
         # Compare mipmap
         folders = ['O.L', 'O.L.L', 'O.L.O']
         score = [0.0, 0.0, 0.0]
-        steps = 1
+        steps = 0
+        weight = 0.0
 
         for image in images:
+            w = 1.0 + 0.1 * steps
+
             for i in range(0, len(folders)):
                 folder = folders[i]
                 image2 = image.replace('O.W', folder)
-
                 if not os.path.exists(image2):
                     print ("%s doesn't exist" % image2)
                     continue
@@ -168,12 +168,12 @@ def compare_pdf_using_images(filename, file_id, outdir):
                 result, value = commands.getstatusoutput(compare_command.format(image, image2))
                 if result == 0:
                     print ("Compare: %s and %s -> %s (%f)" % (image, image2, value, min(1.0, float(value))))
-                    score[i] += min(1.0, float(value)) * steps
-        
+                    score[i] += min(1.0, float(value)) * w
+            weight += w
             steps = steps + 1
 
         for i in range(0, len(folders)):
-            score[i] = score[i] / sum(range(1, steps))
+            score[i] = score[i] / weight
             sum_score[i] = sum_score[i] + score[i]
 
 
@@ -195,7 +195,8 @@ if __name__ == "__main__":
     if count > 1:
         outdir = '/tmp/document_compare/'
         for i in range(1, len(sys.argv)):
-            filename, file_id = init_document_compare (sys.argv[i], outdir)
+            file_id = init_document_compare (sys.argv[i], outdir)
+            filename = file_id + '.docx'
             generate_pdf_for_doc(filename, file_id, outdir)
             generate_fullres_images_from_pdf(filename, file_id, outdir)
-            compare_pdf_using_images(filename, file_id, outdir)
+            compare_pdf_using_images(file_id, outdir)
