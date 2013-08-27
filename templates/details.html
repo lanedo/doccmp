@@ -10,14 +10,14 @@ $for page in range(0, row['pagecount']):
 	<tr><th>Original / Word</th><th>Original / LO</th><th>LO / LO</th><th>LO / Word</th></tr>
 	<tr>
 		$if row['pagecount'] == 1:
-			<td><a href="static/$row['id']/O.W/${row['name']}.png"><img src="static/$row['id']/O.W/${row['name']}.png" width="200px"></img></a></td>
-			<td><a href="static/$row['id']/O.L/${row['name']}.png" width="200px"><img src="static/$row['id']/O.L/${row['name']}.png" width="200px"></img></a></td>
-			<td><a href="static/$row['id']/O.L.L/${row['name']}.png" width="200px"><img src="static/$row['id']/O.L.L/${row['name']}.png" width="200px"></img></a></td>
-			<td><a href="static/$row['id']/O.L.O/${row['name']}.png" width="200px"><img src="static/$row['id']/O.L.O/${row['name']}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.W/${row['id']}.png"><img src="static/$row['id']/O.W/${row['id']}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.L/${row['id']}.png" width="200px"><img src="static/$row['id']/O.L/${row['id']}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.L.L/${row['id']}.png" width="200px"><img src="static/$row['id']/O.L.L/${row['id']}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.L.O/${row['id']}.png" width="200px"><img src="static/$row['id']/O.L.O/${row['id']}.png" width="200px"></img></a></td>
 		$else:
-			<td><a href="static/$row['id']/O.W/${row['name']}-${page}.png" width="200px"><img src="static/$row['id']/O.W/${row['name']}-${page}.png" width="200px"></img></a></td>
-			<td><a href="static/$row['id']/O.L/${row['name']}-${page}.png" width="200px"><img src="static/$row['id']/O.L/${row['name']}-${page}.png" width="200px"></img></a></td>
-			<td><a href="static/$row['id']/O.L.L/${row['name']}-${page}.png" width="200px"><img src="static/$row['id']/O.L.L/${row['name']}-${page}.png" width="200px"></img></a></td>
-			<td><a href="static/$row['id']/O.L.O/${row['name']}-${page}.png" width="200px"><img src="static/$row['id']/O.L.O/${row['name']}-${page}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.W/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.W/${row['id']}-${page}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.L/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.L/${row['id']}-${page}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.L.L/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.L.L/${row['id']}-${page}.png" width="200px"></img></a></td>
+			<td><a href="static/$row['id']/O.L.O/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.L.O/${row['id']}-${page}.png" width="200px"></img></a></td>
 	</tr>
 	</table>
