@@ -6,18 +6,26 @@ $def with (item)
 <td>
 $item.extension
 </td>
-<td>
-$item.pagecount
-</td>
-<td>
-${(int)(item.olscore * 100)} %
-</td>
-<td>
-${(int)(item.ollscore * 100)} %
-</td>
-<td>
-${(int)(item.olwscore * 100)} %
-</td>
-<td>
-<a href="update?uid=$item.id">↺</a>
-</td>
+$if item.pagecount > 0:
+	<td>
+	$item.pagecount
+	</td>
+	<td>
+	${(int)(item.olscore * 100)} %
+	</td>
+	<td>
+	${(int)(item.ollscore * 100)} %
+	</td>
+	<td>
+	${(int)(item.olwscore * 100)} %
+	</td>
+	<td>
+	<a href="update?uid=$item.id">↺</a>
+	</td>
+$else:
+	<td>Processing...</td>
+	<td>N/A</td>
+	<td>N/A</td>
+	<td>N/A</td>
+	<td>N/A</td>
+
