@@ -54,11 +54,11 @@ def print_to_pdf_from_libreoffice(filename, output_folder):
     # Execute command
     os.system(command)
 
-def print_to_docx_from_libreoffice(filename, output_folder):
+def print_to_format_from_libreoffice(format, filename, output_folder):
     print ("##############################################")
-    print (" print_to_docx_from_libreoffice: '%s'" % filename)
+    print (" print_to %s from_libreoffice: '%s'" % (format, filename))
 
-    command = (libreoffice + ' --headless --convert-to docx --outdir ' + output_folder + ' ' + filename)
+    command = (libreoffice + ' --headless --convert-to ' + format[1:] + ' --outdir ' + output_folder + ' ' + filename)
 
     # Execute command
     os.system(command)
@@ -73,6 +73,7 @@ def init_document_compare(absolute_path, outdir):
     # First, we need a id for this file
     file_id = hashlib.md5(open(absolute_path, 'rb').read()).hexdigest()
     full_path = outdir + file_id + '/'
+    b, ext = os.path.splitext(absolute_path)
 
     # Create folder
     if not os.path.exists(full_path):
@@ -80,12 +81,13 @@ def init_document_compare(absolute_path, outdir):
         create_folder_hierarchy_in(full_path)
         
     # Copy file to folder
-    shutil.copy(absolute_path, full_path + file_id + '.docx')
+    shutil.copy(absolute_path, full_path + file_id + ext)
 
     return file_id
 
 def generate_pdf_for_doc(filename, file_id, outdir):
     full_path = outdir + file_id + '/'
+    b, ext = os.path.splitext(filename)
 
     # Generate PDF from Word
     print_to_pdf_from_word(full_path + filename, full_path + '/O.W/')
@@ -93,8 +95,8 @@ def generate_pdf_for_doc(filename, file_id, outdir):
     # Import in LibreOffice and print to pdf
     print_to_pdf_from_libreoffice(full_path + filename, full_path + '/O.L/')
 
-    # Import in LibreOffice, save as docx...
-    print_to_docx_from_libreoffice(full_path + filename, full_path + '/O.L/')
+    # Import in LibreOffice, save as original format
+    print_to_format_from_libreoffice(ext, full_path + filename, full_path + '/O.L/')
     # ...then reopen and print to pdf from LibreOffice
     print_to_pdf_from_libreoffice(full_path + '/O.L/' + filename, full_path + '/O.L.L/')
 
@@ -103,10 +105,11 @@ def generate_pdf_for_doc(filename, file_id, outdir):
 
 def generate_fullres_images_from_pdf(filename, file_id, outdir):
     full_path = outdir + file_id + '/'
+    b, ext = os.path.splitext(filename)
 
     # Generate full resolution images from pdf
-    filename_pdf = filename.replace('.docx', '.pdf')
-    filename_png = filename.replace('.docx', '')
+    filename_pdf = filename.replace(ext, '.pdf')
+    filename_png = filename.replace(ext, '')
     for folder in ['O.W', 'O.L', 'O.L.L', 'O.L.O']:
         cmd = im_command.format(
             full_path + '/' + folder + '/' + filename_pdf,
@@ -196,7 +199,8 @@ if __name__ == "__main__":
         outdir = '/tmp/document_compare/'
         for i in range(1, len(sys.argv)):
             file_id = init_document_compare (sys.argv[i], outdir)
-            filename = file_id + '.docx'
+            b, ext = os.path.splitext(sys.argv[i])
+            filename = file_id + ext
             generate_pdf_for_doc(filename, file_id, outdir)
             generate_fullres_images_from_pdf(filename, file_id, outdir)
             compare_pdf_using_images(file_id, outdir)

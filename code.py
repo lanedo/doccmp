@@ -28,9 +28,9 @@ class index:
         # Do document comparison
         outdir = os.getcwd() + '/static/'
         uid = document_compare.init_document_compare (tempfile, outdir)
-        filename = uid + '.docx'
-
         b, ext = os.path.splitext(form['doc'].filename)
+        filename = uid + ext
+
         config.DB.delete('items', where='id = "' + uid + '"')
         config.DB.insert('items', id=uid, name=b, pagecount=-1, extension=ext,olscore=-1,ollscore=-1, olwscore=-1)
         
