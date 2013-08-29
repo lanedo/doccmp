@@ -1,5 +1,10 @@
 $def with (item)
 
+$code
+	colors = ["#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"]
+	def score_to_color(score):
+		return '#{0:02x}{1:02x}00'.format(int(0.5 * 255), int(score * 255))
+
 <td>
 <a href="details?uid=$item.id">$item.name</a>
 </td>
@@ -10,15 +15,13 @@ $if item.pagecount > 0:
 	<td>
 	$item.pagecount
 	</td>
-	<td>
-	${(int)(item.olscore * 100)} %
-	</td>
-	<td>
-	${(int)(item.ollscore * 100)} %
-	</td>
-	<td>
-	${(int)(item.olwscore * 100)} %
-	</td>
+
+	$for elt in ['olscore', 'ollscore', 'olwscore']:
+		<td bgcolor="
+		$score_to_color(item.olscore)
+		">
+		${(int)(item[elt] * 100)} %
+		</td>
 	<td>
 	<a href="update?uid=$item.id">↺</a>
 	</td>
