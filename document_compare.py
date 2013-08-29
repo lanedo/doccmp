@@ -12,7 +12,7 @@ import tempfile
 
 libreoffice='/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master/install/program/soffice'
 
-im_command='convert -density 150 {} -background white -alpha Background -alpha off {}'
+im_command='pdftocairo -r 150 -png {} {}'
 compare_command='compare -metric NCC  {} {} null'
 resize_command='convert -resize {}x{} {} {}'
 
@@ -31,7 +31,7 @@ def print_to_pdf_from_word(filename, output_folder):
     # SaveAsPDF2 is a macro saving the document to ~/PDF/eee.pdf
     command = ('wine "/home/pierre-eric/.wine/drive_c/Program Files (x86)/Microsoft Office/Office12/WINWORD.EXE" '
             '/q /t "z:' + filename +
-            '" /mSaveAsPDF2 /mFileExit')
+            '" /mSaveAsPDF /mFileExit')
 
     # Execute command
     os.system(command)
@@ -106,7 +106,7 @@ def generate_fullres_images_from_pdf(filename, file_id, outdir):
 
     # Generate full resolution images from pdf
     filename_pdf = filename.replace('.docx', '.pdf')
-    filename_png = filename.replace('.docx', '.png')
+    filename_png = filename.replace('.docx', '')
     for folder in ['O.W', 'O.L', 'O.L.L', 'O.L.O']:
         cmd = im_command.format(
             full_path + '/' + folder + '/' + filename_pdf,
