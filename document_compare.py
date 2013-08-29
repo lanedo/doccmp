@@ -122,6 +122,7 @@ def compare_pdf_using_images(file_id, outdir):
     total_scores = []
     sum_score = [0.0, 0.0, 0.0]
     single_pages = glob.glob(full_path + '/O.W/*.png')
+    single_pages = [f for f in single_pages if f.find('-mini.png') < 0]
 
     # Browse full resolution images (1 per page)
     for single_page_png in single_pages:
@@ -133,28 +134,40 @@ def compare_pdf_using_images(file_id, outdir):
         tmp_folder = tempfile.mkdtemp()
         create_folder_hierarchy_in(tmp_folder)
 
+        mini_saved = False
+
         # Generate all mipmaps in temp folder
         while width > 10 or height > 10:
             width = int(width / 2)
             height = int(height / 2)
             # oooh
-            name = tmp_folder + '/O.W/' + os.path.basename(single_page_png).replace('.png', '_' + str(width) + 'x' + str(height) + '.png')
+            base,ext = os.path.splitext(os.path.basename(single_page_png))
+            name = tmp_folder + '/O.W/' + base + '_' + str(width) + 'x' + str(height) + '.png'
             # Execute IM resize command
             os.system(resize_command.format(width, height, single_page_png, name))
             # Add that to the list of images to be compared
             images += [name]
 
+            if not mini_saved and width < 350:
+                shutil.copy(name, full_path + '/O.W/{}-mini.png'.format(base))
+
             for folder in ['O.L', 'O.L.L', 'O.L.O']:
                 # Look up corresponding image in this folder
-                full_path = single_page_png.replace('O.W', folder)
-                if not os.path.exists(full_path):
+                fp = single_page_png.replace('O.W', folder)
+                if not os.path.exists(fp):
                     continue
                 # If present, execute IM resize command 
-                os.system(resize_command.format(width, height, full_path, name.replace('O.W', folder)))
+                n = name.replace('O.W', folder)
+                os.system(resize_command.format(width, height, fp, n))
 
+                if not mini_saved and width < 350:
+                    shutil.copy(n, full_path + '/{}/{}-mini.png'.format(folder, base))
+
+            mini_saved = (width < 350)
+        
         # Compare mipmap
-        folders = ['O.L', 'O.L.L', 'O.L.O']
         score = [0.0, 0.0, 0.0]
+        folders = ['O.L', 'O.L.L', 'O.L.O']
         steps = 0
         weight = 0.0
 
