@@ -4,14 +4,26 @@ $def with (row)
 <br/>
 <b>$row['name']</b>
 
+$code:
+	fmt = '{3:0' + str(len(str(row['pagecount']))) + 'd}'
+
+	def ptos(page):
+		return fmt.format(page)
+
+	def link(page, folder, id):
+		return str("static/{0}/{1}/{2}-" + fmt + ".png").format(id, folder, id, page)
+
 $for page in range(1, row['pagecount'] + 1):
 	<p>Page ${page}</p>
 	<table border="1">
 	<tr><th>Original / Word</th><th>Original / LO</th><th>LO / LO</th><th>LO / Word</th></tr>
 	<tr>
-		<td><a href="static/$row['id']/O.W/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.W/${row['id']}-${page}.png" width="200px"></img></a></td>
-		<td><a href="static/$row['id']/O.L/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.L/${row['id']}-${page}.png" width="200px"></img></a></td>
-		<td><a href="static/$row['id']/O.L.L/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.L.L/${row['id']}-${page}.png" width="200px"></img></a></td>
-		<td><a href="static/$row['id']/O.L.O/${row['id']}-${page}.png" width="200px"><img src="static/$row['id']/O.L.O/${row['id']}-${page}.png" width="200px"></img></a></td>
+		$for folder in ["O.W", "O.L", "O.L.L", "O.L.O"]:
+			$ lk = link(page, folder, row['id'])
+			<td><a href="
+			$lk
+			"><img src="
+			$lk
+			" width="200px"></img></a></td>
 	</tr>
 	</table>
