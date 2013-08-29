@@ -10,11 +10,6 @@ Documents:
  
 <!-- DataTables -->
 <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-<script type="text/javascript">
-	$$(document).ready(function() {
-	    $$('#table_id').dataTable();
-	} );
-</script>
 
 <table id="table_id" border='1'>
 <thead>
@@ -27,3 +22,11 @@ $for item in items:
     <tr>$:render.item(item)</tr>
 </tbody>
 </table>
+
+<script type="text/javascript">
+	$$(document).ready(function() {
+	    $$('#table_id').dataTable( {
+	    	"iDisplayLength": 100
+	    });
+	} );
+</script>
