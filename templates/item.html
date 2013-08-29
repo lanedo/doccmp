@@ -18,7 +18,7 @@ $if item.pagecount > 0:
 
 	$for elt in ['olscore', 'ollscore', 'olwscore']:
 		<td bgcolor="
-		$score_to_color(item.olscore)
+		$score_to_color(item[elt])
 		">
 		${(int)(item[elt] * 100)} %
 		</td>
