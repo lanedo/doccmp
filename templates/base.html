@@ -4,6 +4,13 @@ $def with (page, title=None)
 $if title: : $title\
 </title>
 </head><body>
-<h1><a href="/upload">Upload document</a></h1>
+<h1>
+<form method="POST" enctype="multipart/form-data" action="">
+<input type="file" name="doc" />
+<br/>
+<input type="submit" />
+</form>
+
+</h1>
 $:page   
 </body></html>
