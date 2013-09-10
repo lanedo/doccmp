@@ -177,6 +177,10 @@ def compare_pdf_using_images(file_id, outdir):
         for image in images:
             w = 1.0 + 0.1 * steps
 
+            # max possible score
+            result, value = commands.getstatusoutput(compare_command.format(image, image))
+            max_possible = min(1.0, float(value))
+            print ("Max possible value: %f" % max_possible)
             for i in range(0, len(folders)):
                 folder = folders[i]
                 image2 = image.replace('O.W', folder)
@@ -184,10 +188,13 @@ def compare_pdf_using_images(file_id, outdir):
                     print ("%s doesn't exist" % image2)
                     continue
 
-                result, value = commands.getstatusoutput(compare_command.format(image, image2))
-                if result == 0:
-                    print ("Compare: %s and %s -> %s (%f)" % (image, image2, value, min(1.0, float(value))))
-                    score[i] += min(1.0, float(value)) * w
+                if max_possible > 0:
+                    result, value = commands.getstatusoutput(compare_command.format(image, image2))
+                    if result == 0:
+                        print ("Compare: %s and %s -> %s (%f)" % (image, image2, value, min(1.0, float(value))))
+                        score[i] += ( min(1.0, float(value)) / max_possible )* w
+                else:
+                    score[i] += 1.0 * w
             weight += w
             steps = steps + 1
 
