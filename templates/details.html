@@ -13,10 +13,18 @@ $code:
 	def link(page, folder, id):
 		return str("static/{0}/{1}/{2}-" + fmt + ".png").format(id, folder, id, page)
 
+	ddd = row['details']
+	individual_grades = []
+	if ddd == None:
+		for i in range(0, 3 * row['pagecount']):
+			individual_grades += ['-']
+	else:
+		individual_grades = str(ddd).strip('[]').split(', ')
+
 $for page in range(1, row['pagecount'] + 1):
 	<p>Page ${page}</p>
 	<table border="1">
-	<tr><th>Original / Word</th><th>Original / LO</th><th>LO / LO</th><th>LO / Word</th></tr>
+	<tr><th>Original / Word (Ref)<br/> Ref</th><th>Original / LO<br/> $individual_grades[3 * (page-1) + 0] %</th><th>LO / LO<br/> $individual_grades[3 * (page-1) + 1] %</th><th>LO / Word<br/> $individual_grades[3 * (page-1) + 2] %</th></tr>
 	<tr>
 		$for folder in ["O.W", "O.L", "O.L.L", "O.L.O"]:
 			$ lk = link(page, folder, row['id'])
@@ -24,6 +32,7 @@ $for page in range(1, row['pagecount'] + 1):
 			$lk
 			"><img src="
 			$lk.replace('.png', '-mini.png')
-			" ></img></a></td>
+			" ></img></a>
+			</td>
 	</tr>
 	</table>

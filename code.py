@@ -62,7 +62,7 @@ class details:
 
 class update:
     def GET(self):
-        i = web.input(uid=None)
+        i = web.input(uid=None, full=0)
         if i.uid == None:
             return render.base(view.listing())
         else:
@@ -72,17 +72,21 @@ class update:
             if len(rows) > 0:
                 outdir = os.getcwd() + '/static/'
                 row = rows[0]
-                score, pagecount = document_compare.compare_pdf_using_images(row['id'], outdir)
-                config.DB.update('items', where='id="' + str(row['id']) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2])
+                if i.full == 0:
+                    score, pagecount, all_scores = document_compare.compare_pdf_using_images(row['id'], outdir)
+                    config.DB.update('items', where='id="' + str(i.uid) + '"', pagecount=pagecount, olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))        
+                else:
+                    a = threading.Thread(target=worker, args=(row['id'] + row['extension'], i.uid, outdir))
+                    a.start()
             
             return render.base(view.listing())
 
 def worker(filename, uid, outdir):
     document_compare.generate_pdf_for_doc(filename, uid, outdir)
     document_compare.generate_fullres_images_from_pdf(filename, uid, outdir)
-    score, pagecount = document_compare.compare_pdf_using_images(uid, outdir)
+    score, pagecount, all_scores = document_compare.compare_pdf_using_images(uid, outdir)
     # Insert into base
-    config.DB.update('items', where='id="' + str(uid) + '"', pagecount=pagecount, olscore=score[0],ollscore=score[1], olwscore=score[2])        
+    config.DB.update('items', where='id="' + str(uid) + '"', pagecount=pagecount, olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))        
 
 if __name__ == "__main__":
     app = web.application(urls, globals())

@@ -10,7 +10,7 @@ from PIL import Image
 import commands
 import tempfile
 
-libreoffice='/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master/install/program/soffice'
+libreoffice='/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/install/program/soffice'
 
 im_command='pdftocairo -r 150 -png {} {}'
 compare_command='compare -metric NCC  {} {} null'
@@ -120,9 +120,12 @@ def compare_pdf_using_images(file_id, outdir):
     full_path = outdir + file_id + '/'
 
     total_scores = []
+    all_scores = []
     sum_score = [0.0, 0.0, 0.0]
     single_pages = glob.glob(full_path + '/O.W/*.png')
     single_pages = [f for f in single_pages if f.find('-mini.png') < 0]
+
+    single_pages.sort()
 
     # Browse full resolution images (1 per page)
     for single_page_png in single_pages:
@@ -191,19 +194,20 @@ def compare_pdf_using_images(file_id, outdir):
         for i in range(0, len(folders)):
             score[i] = score[i] / weight
             sum_score[i] = sum_score[i] + score[i]
-
+            # logs individual pages grade
+            all_scores += [int(100 * score[i])]
 
         # remove temp dir
         shutil.rmtree(tmp_folder)
 
-        total_scores += [score]
+        total_scores += score
 
     for i in range(0, len(sum_score)):
         sum_score[i] = sum_score[i] / float(len(single_pages))
 
     print ("FINAL SCORE: " + str(sum_score))
 
-    return sum_score, len(single_pages)
+    return sum_score, len(single_pages), all_scores
 
 
 if __name__ == "__main__":
