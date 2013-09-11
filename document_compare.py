@@ -10,6 +10,8 @@ from PIL import Image
 import commands
 import tempfile
 
+latest_lo = '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/'
+
 def get_libreoffice_cmd(libreoffice_base):
     return libreoffice_base + 'install/program/soffice'
 
@@ -86,7 +88,10 @@ def init_document_compare(absolute_path, outdir):
     shutil.copy(absolute_path, full_path + file_id + ext)
 
     # Generate reference pdf
-    print_to_pdf_from_word(full_path + file_id + ext, full_path)
+    if ext != '.odt':
+        print_to_pdf_from_word(full_path + file_id + ext, full_path)
+    else:
+        print_to_pdf_from_libreoffice(latest_lo, full_path + file_id + ext, full_path)
 
     return file_id
 
@@ -107,14 +112,18 @@ def generate_pdf_for_doc(filename, file_id, libreoffice, outdir):
     print_to_pdf_from_libreoffice(libreoffice, filename, full_path + '/O.L/')
 
     # Import in LibreOffice, save as original format
+    if ext == '.odt':
+        ext = '.docx'
+
     print_to_format_from_libreoffice(libreoffice, ext, filename, full_path + '/O.L/')
-    lo_generated_pdf_path = full_path + '/O.L/' + os.path.basename(filename)
+
+    lo_generated_file_path = full_path + '/O.L/' + os.path.splitext(os.path.basename(filename))[0] + ext
 
     # ...then reopen and print to pdf from LibreOffice
-    print_to_pdf_from_libreoffice(libreoffice, lo_generated_pdf_path, full_path + '/O.L.L/')
+    print_to_pdf_from_libreoffice(libreoffice, lo_generated_file_path, full_path + '/O.L.L/')
 
     # Then print to pdf from Word
-    print_to_pdf_from_word(lo_generated_pdf_path, full_path + '/O.L.O/')
+    print_to_pdf_from_word(lo_generated_file_path, full_path + '/O.L.O/')
 
 def generate_fullres_images_from_pdf(filename, file_id, outdir):
     full_path = outdir + file_id + '/'
