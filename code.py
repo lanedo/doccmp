@@ -13,13 +13,15 @@ urls = (
 	'/update', 'update'
 )
 
-lo =['/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/', '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-3.6/']
+lo =['/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/', '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-4.1/', '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-3.6/']
 
 def sha_to_libreoffice(sha):
 	if sha == 'f5248b4':
 		return lo[0]
-	elif sha == 'b059b03':
+	elif sha == '9c2b278':
 		return lo[1]
+	elif sha == 'b059b03':
+		return lo[2]
 	else:
 		raise
 
@@ -46,7 +48,7 @@ class index:
 		config.DB.insert('items', id=uid, name=b, pagecount=-1, extension=ext)
 
 		# Start bg thread		
-		a = threading.Thread(target=worker, args=(tempfile,))
+		a = threading.Thread(target=worker, args=(tempfile, False, ))
 		a.start()
 
 		return render.base(view.listing())
@@ -83,19 +85,28 @@ class update:
 					config.DB.update('scores', where='id="' + str(i.uid) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))        
 				else:
 					shutil.copy(outdir + str(i.uid) + '/' + str(i.uid) + row['extension'], '/tmp/')
-					config.DB.delete('scores', where='id = "' + str(i.uid) + '"')
-					a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], ))
-					a.start()
+					results = config.DB.query("SELECT COUNT(*) AS total_version FROM scores WHERE id='"  + str(i.uid) + "'")
+					if results[0].total_version == len(lo):
+						config.DB.delete('scores', where='id = "' + str(i.uid) + '"')
+						a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], False, ))
+						a.start()
+					else:
+						a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], True, ))
+						a.start()
 			
 			return render.base(view.listing())
 
-def worker(tempfile):
-	lo =['/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/', '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-3.6/']
-
+def worker(tempfile, only_add_missing):
 	for libreoffice in lo:
 		sha = document_compare.get_libreoffice_sha(libreoffice)
 		outdir = os.getcwd() + '/static/' + sha + '/'
 		uid = document_compare.init_document_compare (tempfile, outdir)
+
+		if only_add_missing:
+			results = config.DB.select('scores', dict(n=str(uid)), where="id=$n AND commitsha='" + str(sha) + "'")
+			if len(results.list()) > 0:
+				continue
+
 		b, ext = os.path.splitext(tempfile)
 		filename = uid + ext
 
