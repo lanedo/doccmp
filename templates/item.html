@@ -5,11 +5,22 @@ $code
 	def score_to_color(score):
 		return '#{0:02x}{1:02x}00'.format(int(0.5 * 255), int(score * 255))
 
+	def sha_2_version(sha):
+		if sha == 'f5248b4':
+			return "4.2"
+		elif sha == 'b059b03':
+			return "3.6.8"
+		else:
+			return "X.X"
+
 <td>
 <a href="details?uid=$item.id&sha=$item.commitsha">$item.name</a>
 </td>
 <td>
 $item.extension
+</td>
+<td>
+$sha_2_version(item.commitsha)
 </td>
 <td>
 $item.commitsha
