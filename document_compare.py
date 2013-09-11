@@ -79,16 +79,14 @@ def init_document_compare(absolute_path, outdir):
 
     # First, we need a id for this file
     file_id = compute_uid(absolute_path)
-    full_path = outdir + file_id + '/'
+    full_path = outdir + '/originals/'
     b, ext = os.path.splitext(absolute_path)
 
-    # Create folder
-    if not os.path.exists(full_path):
-        os.makedirs(full_path)
-        create_folder_hierarchy_in(full_path)
-        
     # Copy file to folder
     shutil.copy(absolute_path, full_path + file_id + ext)
+
+    # Generate reference pdf
+    print_to_pdf_from_word(full_path + file_id + ext, full_path)
 
     return file_id
 
@@ -96,19 +94,27 @@ def generate_pdf_for_doc(filename, file_id, libreoffice, outdir):
     full_path = outdir + file_id + '/'
     b, ext = os.path.splitext(filename)
 
+    # Create folder
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+        create_folder_hierarchy_in(full_path)
+
     # Generate PDF from Word
-    print_to_pdf_from_word(full_path + filename, full_path + '/O.W/')
+    #print_to_pdf_from_word(filename, full_path + '/O.W/')
+    shutil.copy(filename.replace(ext, '.pdf'), full_path + '/O.W/')
 
     # Import in LibreOffice and print to pdf
-    print_to_pdf_from_libreoffice(libreoffice, full_path + filename, full_path + '/O.L/')
+    print_to_pdf_from_libreoffice(libreoffice, filename, full_path + '/O.L/')
 
     # Import in LibreOffice, save as original format
-    print_to_format_from_libreoffice(libreoffice, ext, full_path + filename, full_path + '/O.L/')
+    print_to_format_from_libreoffice(libreoffice, ext, filename, full_path + '/O.L/')
+    lo_generated_pdf_path = full_path + '/O.L/' + os.path.basename(filename)
+
     # ...then reopen and print to pdf from LibreOffice
-    print_to_pdf_from_libreoffice(libreoffice, full_path + '/O.L/' + filename, full_path + '/O.L.L/')
+    print_to_pdf_from_libreoffice(libreoffice, lo_generated_pdf_path, full_path + '/O.L.L/')
 
     # Then print to pdf from Word
-    print_to_pdf_from_word(full_path + '/O.L/' + filename, full_path + '/O.L.O/')
+    print_to_pdf_from_word(lo_generated_pdf_path, full_path + '/O.L.O/')
 
 def generate_fullres_images_from_pdf(filename, file_id, outdir):
     full_path = outdir + file_id + '/'
@@ -239,6 +245,6 @@ if __name__ == "__main__":
             file_id = init_document_compare (sys.argv[i], outdir)
             b, ext = os.path.splitext(sys.argv[i])
             filename = file_id + ext
-            generate_pdf_for_doc(filename, file_id, libreoffice, outdir)
+            generate_pdf_for_doc('/tmp/document_compare/originals/' + filename, file_id, libreoffice, outdir)
             generate_fullres_images_from_pdf(filename, file_id, outdir)
             compare_pdf_using_images(file_id, outdir)

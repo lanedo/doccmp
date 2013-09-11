@@ -7,7 +7,9 @@ import config
 t_globals = dict(
   datestr=web.datestr,
   str=str,
-  len=len
+  len=len,
+  config=config,
+  db=db,
 )
 render = web.template.render('templates/', cache=config.cache, 
     globals=t_globals)

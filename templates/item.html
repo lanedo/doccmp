@@ -5,50 +5,46 @@ $code
 	def score_to_color(score):
 		return '#{0:02x}{1:02x}00'.format(int(0.5 * 255), int(score * 255))
 
-	def sha_2_version(sha):
-		if sha == 'f5248b4':
-			return "4.2"
-		elif sha == 'b059b03':
-			return "3.6.8"
-		elif sha == '9c2b278':
-			return "4.0.X"
-		else:
-			return "X.X"
-
 <td>
-<a href="details?uid=$item.id&sha=$item.commitsha">$item.name</a>
+$item.name
 </td>
 <td>
 $item.extension
 </td>
 <td>
-$sha_2_version(item.commitsha)
+$item.pagecount
 </td>
 <td>
-$item.commitsha
-</td>
-$if item.pagecount > 0:
+<table border='1'>
+<thead>
+<tr>
+<th>Version</th><th>Commit SHA</th><th>Import in LO</th><th>LO->LO</th><th>LO->Word</th>
+</tr>
+</thead>
+<tbody>
+
+$for result in db.results_for_doc(item.id):
+	<tr>
 	<td>
-	$item.pagecount
+	$db.sha_2_version(result.commitsha)
+	</td>
+	<td>
+	<a <a href="details?uid=$item.id&sha=$result.commitsha">$result.commitsha</a>
 	</td>
 
 	$for elt in ['olscore', 'ollscore', 'olwscore']:
 		<td bgcolor="
-		$score_to_color(item[elt])
+		$score_to_color(result[elt])
 		">
-		${(int)(item[elt] * 100)} %
+		${(int)(result[elt] * 100)} %
 		</td>
-	<td>
-	<a href="update?uid=$item.id&sha=$item.commitsha">↺</a>
-	</td>
-	<td>
-	<a href="update?uid=$item.id&full=1&sha=$item.commitsha">↺</a>
-	</td>
-$else:
-	<td>Processing...</td>
-	<td>N/A</td>
-	<td>N/A</td>
-	<td>N/A</td>
-	<td>N/A</td>
-	<td>N/A</td>
+	</tr>
+</tbody>
+</table>
+<td>
+<a href="update?uid=$item.id">↺</a>
+</td>
+<td>
+<a href="update?uid=$item.id&full=1">↺</a>
+</td>
 

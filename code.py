@@ -70,7 +70,7 @@ class details:
 class update:
 	def GET(self):
 		i = web.input(uid=None, sha=None, full=0)
-		if i.uid == None or i.sha==None:
+		if i.uid == None:
 			return render.base(view.listing())
 		else:
 			results = config.DB.select('items', dict(n=str(i.uid)), where="id=$n")
@@ -78,14 +78,17 @@ class update:
 			print ("Row count: " + str(len(rows)))
 			if len(rows) > 0:
 				row = rows[0]
-				sha = i.sha
-				outdir = os.getcwd() + '/static/' + sha + '/'
+
+				results = config.DB.query("SELECT * FROM scores WHERE id='"  + str(i.uid) + "'")
 				if i.full == 0:
-					score, pagecount, all_scores = document_compare.compare_pdf_using_images(row['id'], outdir)
-					config.DB.update('scores', where='id="' + str(i.uid) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))        
+					for r in results.list():
+						print ("Updating: " + r['commitsha'])
+						outdir = os.getcwd() + '/static/' + r['commitsha'] + '/'
+						score, pagecount, all_scores = document_compare.compare_pdf_using_images(row['id'], outdir)
+						config.DB.update('scores', where='id="' + str(i.uid) + '" AND commitsha="' + str(r['commitsha']) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))
 				else:
-					shutil.copy(outdir + str(i.uid) + '/' + str(i.uid) + row['extension'], '/tmp/')
-					results = config.DB.query("SELECT COUNT(*) AS total_version FROM scores WHERE id='"  + str(i.uid) + "'")
+					shutil.copy(os.getcwd() + '/static/originals/' + str(i.uid) + row['extension'], '/tmp/')
+					
 					if results[0].total_version == len(lo):
 						config.DB.delete('scores', where='id = "' + str(i.uid) + '"')
 						a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], False, ))
@@ -97,10 +100,12 @@ class update:
 			return render.base(view.listing())
 
 def worker(tempfile, only_add_missing):
+	baseoutdir = os.getcwd() + '/static/'
+	uid = document_compare.init_document_compare (tempfile, baseoutdir)
+
 	for libreoffice in lo:
 		sha = document_compare.get_libreoffice_sha(libreoffice)
-		outdir = os.getcwd() + '/static/' + sha + '/'
-		uid = document_compare.init_document_compare (tempfile, outdir)
+		outdir = baseoutdir + sha + '/'
 
 		if only_add_missing:
 			results = config.DB.select('scores', dict(n=str(uid)), where="id=$n AND commitsha='" + str(sha) + "'")
@@ -110,7 +115,7 @@ def worker(tempfile, only_add_missing):
 		b, ext = os.path.splitext(tempfile)
 		filename = uid + ext
 
-		document_compare.generate_pdf_for_doc(filename, uid, libreoffice, outdir)
+		document_compare.generate_pdf_for_doc(baseoutdir + 'originals/' + filename, uid, libreoffice, outdir)
 		document_compare.generate_fullres_images_from_pdf(filename, uid, outdir)
 		score, pagecount, all_scores = document_compare.compare_pdf_using_images(uid, outdir)
 		# Update page count
