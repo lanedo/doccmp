@@ -138,6 +138,11 @@ def generate_fullres_images_from_pdf(filename, file_id, outdir):
             full_path + '/' + folder + '/' + filename_png)
         os.system(cmd)
 
+def page_count(folder):
+    single_pages = glob.glob(folder + '*.png')
+    single_pages = [f for f in single_pages if f.find('-mini.png') < 0]
+    return len(single_pages)
+
 def compare_pdf_using_images(file_id, outdir):
     full_path = outdir + file_id + '/'
 
@@ -231,8 +236,17 @@ def compare_pdf_using_images(file_id, outdir):
 
         total_scores += score
 
+    ref_page_count = page_count(full_path + '/O.W/')
+    pgc = []
+    pgc += [page_count(full_path + '/O.L/')]
+    pgc += [page_count(full_path + '/O.L.L/')]
+    pgc += [page_count(full_path + '/O.L.O/')]
+
     for i in range(0, len(sum_score)):
-        sum_score[i] = sum_score[i] / float(len(single_pages))
+        adjust = 1.0
+        if (pgc[i] > ref_page_count):
+            adjust = ref_page_count / float(pgc[i])
+        sum_score[i] = (sum_score[i] / float(len(single_pages))) * adjust
 
     print ("FINAL SCORE: " + str(sum_score))
 
