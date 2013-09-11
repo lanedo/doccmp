@@ -225,9 +225,9 @@ def compare_pdf_using_images(file_id, outdir):
 
 def get_libreoffice_sha(libreoffice):
     current = os.getcwd()
-    os.chdir(libreoffice)
-    result, sha = commands.getstatusoutput("git rev-parse --short HEAD")
-    os.chdir(current)
+    #os.chdir(libreoffice)
+    result, sha = commands.getstatusoutput("cd {} && git rev-parse --short HEAD && cd {}".format(libreoffice, current))
+    #os.chdir(current)
     return sha
 
 if __name__ == "__main__":
