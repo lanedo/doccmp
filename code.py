@@ -13,6 +13,16 @@ urls = (
 	'/update', 'update'
 )
 
+lo =['/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/', '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-3.6/']
+
+def sha_to_libreoffice(sha):
+	if sha == 'f5248b4':
+		return lo[0]
+	elif sha == 'b059b03':
+		return lo[1]
+	else:
+		raise
+
 class index:
 	def GET(self):
 		return render.base(view.listing())
@@ -57,22 +67,24 @@ class details:
 
 class update:
 	def GET(self):
-		i = web.input(uid=None, full=0)
-		if i.uid == None:
+		i = web.input(uid=None, sha=None, full=0)
+		if i.uid == None or i.sha==None:
 			return render.base(view.listing())
 		else:
 			results = config.DB.select('items', dict(n=str(i.uid)), where="id=$n")
 			rows = results.list()
 			print ("Row count: " + str(len(rows)))
 			if len(rows) > 0:
-				sha = document_compare.get_libreoffice_sha()
-				outdir = os.getcwd() + '/static/' + sha + '/'
 				row = rows[0]
+				sha = i.sha
+				outdir = os.getcwd() + '/static/' + sha + '/'
 				if i.full == 0:
 					score, pagecount, all_scores = document_compare.compare_pdf_using_images(row['id'], outdir)
 					config.DB.update('scores', where='id="' + str(i.uid) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))        
 				else:
-					a = threading.Thread(target=worker, args=(row['id'] + row['extension'], i.uid, outdir, sha))
+					shutil.copy(outdir + str(i.uid) + '/' + str(i.uid) + row['extension'], '/tmp/')
+					config.DB.delete('scores', where='id = "' + str(i.uid) + '"')
+					a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], ))
 					a.start()
 			
 			return render.base(view.listing())
@@ -94,6 +106,8 @@ def worker(tempfile):
 		config.DB.update('items', where='id="' + str(uid) + '"', pagecount=pagecount)
 		# Update score
 		config.DB.insert('scores', id=str(uid), commitsha=sha, olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))
+
+	os.remove(tempfile)
 
 if __name__ == "__main__":
 	app = web.application(urls, globals())

@@ -26,10 +26,10 @@ $if item.pagecount > 0:
 		${(int)(item[elt] * 100)} %
 		</td>
 	<td>
-	<a href="update?uid=$item.id">↺</a>
+	<a href="update?uid=$item.id&sha=$item.commitsha">↺</a>
 	</td>
 	<td>
-	<a href="update?uid=$item.id&full=1">↺</a>
+	<a href="update?uid=$item.id&full=1&sha=$item.commitsha">↺</a>
 	</td>
 $else:
 	<td>Processing...</td>
