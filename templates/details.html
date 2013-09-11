@@ -5,13 +5,13 @@ $def with (row)
 <b>$row['name']</b>
 
 $code:
-	fmt = '{3:0' + str(len(str(row['pagecount']))) + 'd}'
+	fmt = '{4:0' + str(len(str(row['pagecount']))) + 'd}'
 
 	def ptos(page):
 		return fmt.format(page)
 
-	def link(page, folder, id):
-		return str("static/{0}/{1}/{2}-" + fmt + ".png").format(id, folder, id, page)
+	def link(sha, page, folder, id):
+		return str("static/{0}/{1}/{2}/{3}-" + fmt + ".png").format(sha,id, folder, id, page)
 
 	ddd = row['details']
 	individual_grades = []
@@ -27,7 +27,7 @@ $for page in range(1, row['pagecount'] + 1):
 	<tr><th>Original / Word (Ref)<br/> Ref</th><th>Original / LO<br/> $individual_grades[3 * (page-1) + 0] %</th><th>LO / LO<br/> $individual_grades[3 * (page-1) + 1] %</th><th>LO / Word<br/> $individual_grades[3 * (page-1) + 2] %</th></tr>
 	<tr>
 		$for folder in ["O.W", "O.L", "O.L.L", "O.L.O"]:
-			$ lk = link(page, folder, row['id'])
+			$ lk = link(row['commitsha'], page, folder, row['id'])
 			<td><a href="
 			$lk
 			"><img src="

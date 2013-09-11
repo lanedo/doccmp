@@ -6,10 +6,13 @@ $code
 		return '#{0:02x}{1:02x}00'.format(int(0.5 * 255), int(score * 255))
 
 <td>
-<a href="details?uid=$item.id">$item.name</a>
+<a href="details?uid=$item.id&sha=$item.commitsha">$item.name</a>
 </td>
 <td>
 $item.extension
+</td>
+<td>
+$item.commitsha
 </td>
 $if item.pagecount > 0:
 	<td>
