@@ -9,9 +9,6 @@ import glob
 from PIL import Image
 import commands
 import tempfile
-import subprocess
-import shlex
-import threading
 
 latest_lo = '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/'
 
@@ -28,8 +25,6 @@ def create_folder_hierarchy_in(folder):
     os.makedirs(folder + '/O.L.L')
     os.makedirs(folder + '/O.L.O')
 
-def kill_subprocess(pid):
-    pid.kill()
 
 def print_to_pdf_from_word(filename, output_folder):
     print ("##############################################")
@@ -37,22 +32,12 @@ def print_to_pdf_from_word(filename, output_folder):
 
     # Build command (using implicitely joined strings)
     # SaveAsPDF2 is a macro saving the document to ~/PDF/eee.pdf
-    command = ('xvfb-run wine "/home/pierre-eric/.wine/drive_c/Program Files (x86)/Microsoft Office/Office12/WINWORD.EXE" '
+    command = ('wine "/home/pierre-eric/.wine/drive_c/Program Files (x86)/Microsoft Office/Office12/WINWORD.EXE" '
             '/q /t "z:' + filename +
             '" /mSaveAsPDF /mFileExit')
 
-    args = shlex.split(command)
     # Execute command
-    pid = subprocess.Popen(args)
-    # 10 seconds max before kill
-    t = threading.Timer(10.0, kill_subprocess, [pid, ])
-    t.start()
-
-    while pid.poll() == None:
-        # wait 10 ms
-        time.sleep(0.1)
-
-    t.cancel()
+    os.system(command)
 
     # Get filename
     fullname, ext = os.path.splitext(filename)
@@ -114,12 +99,10 @@ def generate_pdf_for_doc(filename, file_id, libreoffice, outdir):
     full_path = outdir + file_id + '/'
     b, ext = os.path.splitext(filename)
 
-
-    # Setup output folder
-    if os.path.exists(full_path):
-        shutil.rmtree(full_path)
-    os.makedirs(full_path)
-    create_folder_hierarchy_in(full_path)
+    # Create folder
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+        create_folder_hierarchy_in(full_path)
 
     # Generate PDF from Word
     #print_to_pdf_from_word(filename, full_path + '/O.W/')
@@ -249,8 +232,7 @@ def compare_pdf_using_images(file_id, outdir):
             all_scores += [int(100 * score[i])]
 
         # remove temp dir
-        #shutil.rmtree(tmp_folder)
-        print (tmp_folder)
+        shutil.rmtree(tmp_folder)
 
         total_scores += score
 
