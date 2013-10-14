@@ -15,16 +15,9 @@ urls = (
 
 lo =['/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/', '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-4.1/', '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-3.6/']
 
-def sha_to_libreoffice(sha):
-	if sha == 'f5248b4':
-		return lo[0]
-	elif sha == '9c2b278':
-		return lo[1]
-	elif sha == 'b059b03':
-		return lo[2]
-	else:
-		raise
-
+###############################################################################
+# MAIN
+###############################################################################
 class index:
 	def GET(self):
 		return render.base(view.listing())
@@ -53,6 +46,10 @@ class index:
 
 		return render.base(view.listing())
 
+
+###############################################################################
+# DETAILS
+###############################################################################
 class details:
 	def GET(self):
 		i = web.input(uid=None, sha=None)
@@ -67,9 +64,13 @@ class details:
 			row = rows[0]
 			return render.details(row)
 
+
+###############################################################################
+# UPDATE
+###############################################################################
 class update:
 	def GET(self):
-		i = web.input(uid=None, sha=None, full=0)
+		i = web.input(uid=None, path2LO=None, full=0)
 		if i.uid == None:
 			return render.base(view.listing())
 		else:
@@ -82,34 +83,41 @@ class update:
 				results = config.DB.query("SELECT * FROM scores WHERE id='"  + str(i.uid) + "'")
 				if i.full == 0:
 					for r in results.list():
-						print ("Updating: " + r['commitsha'])
+						print ("Updating: " + r['path2LO'])
 						outdir = os.getcwd() + '/static/' + r['commitsha'] + '/'
 						score, pagecount, all_scores = document_compare.compare_pdf_using_images(row['id'], outdir)
-						config.DB.update('scores', where='id="' + str(i.uid) + '" AND commitsha="' + str(r['commitsha']) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))
+						config.DB.update('scores', where='id="' + str(i.uid) + '" AND path2LO="' + str(r['path2LO']) + '"', olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))
 				else:
 					shutil.copy(os.getcwd() + '/static/originals/' + str(i.uid) + row['extension'], '/tmp/')
 					
 					if len(results.list()) == len(lo):
 						# Update everyone
-						if i.sha == None:
+						if i.path2LO == None:
 							config.DB.delete('scores', where='id = "' + str(i.uid) + '"')
-							a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], False, ))
+							a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], lo, False, ))
 							a.start()
 						# Update one row
 						else:
-							print ("TODO")
+							config.DB.delete('scores', where='id = "' + str(i.uid) + '" AND path2LO="' + str(i.path2LO) + '"')
+							a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], [str(i.path2LO)], False, ))
+							a.start()
 					else:
-						a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], True, ))
+						a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], lo, True, ))
 						a.start()
 			
 			return render.base(view.listing())
 
-def worker(tempfile, only_add_missing):
+
+###############################################################################
+# Function performing document comparaison
+###############################################################################
+def worker(tempfile, libreoffice_versions_to_use, only_add_missing):
 	baseoutdir = os.getcwd() + '/static/'
 	uid = document_compare.init_document_compare (tempfile, baseoutdir)
 
-	for libreoffice in lo:
+	for libreoffice in libreoffice_versions_to_use:
 		sha = document_compare.get_libreoffice_sha(libreoffice)
+		version = document_compare.get_libreoffice_version(libreoffice)
 		outdir = baseoutdir + sha + '/'
 
 		if only_add_missing:
@@ -126,7 +134,7 @@ def worker(tempfile, only_add_missing):
 		# Update page count
 		config.DB.update('items', where='id="' + str(uid) + '"', pagecount=pagecount)
 		# Update score
-		config.DB.insert('scores', id=str(uid), commitsha=sha, olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'))
+		config.DB.insert('scores', id=str(uid), commitsha=sha, olscore=score[0],ollscore=score[1], olwscore=score[2], details=str(all_scores).strip('[]'), version=version, path2LO=libreoffice)
 
 	os.remove(tempfile)
 

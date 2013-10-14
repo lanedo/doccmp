@@ -53,7 +53,7 @@ def print_to_pdf_from_word(filename, output_folder):
 
     args = shlex.split(command)
     # Execute command
-    pid = subprocess.Popen(args)
+    pid = subprocess.Popen(args, stdout=subprocess.PIPE)
     # 10 seconds max before kill
     t = threading.Timer(15.0, kill_subprocess, [pid, ])
     t.start()
@@ -287,6 +287,20 @@ def get_libreoffice_sha(libreoffice):
     #os.chdir(current)
     return sha
 
+def get_libreoffice_version(libreoffice):
+    current = os.getcwd()
+    versions = []
+    names = ["MAJOR", "MICRO", "MINOR"]
+    #os.chdir(libreoffice)
+    for name in names:
+        result, v = commands.getstatusoutput("cd {} && grep LIBO_VERSION_{} config_host.mk && cd {}".format(libreoffice, name, current))
+        if int(result) == 0:
+            versions += v.split('=')[1]
+        else:
+            result, v = commands.getstatusoutput("cd {} && grep PRODUCTVERSION config_host.mk && cd {}".format(libreoffice, current))
+            return v.split('=')[1]
+    return '.'.join(versions)
+
 if __name__ == "__main__":
     count = len(sys.argv)
     if count > 1:
@@ -298,7 +312,6 @@ if __name__ == "__main__":
             os.makedirs(outdir + '/originals/')
             create_folder_hierarchy_in(outdir)
 
-        libreoffice='/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/'
         for i in range(1, len(sys.argv)):
             file_id = init_document_compare (sys.argv[i], outdir)
             b, ext = os.path.splitext(sys.argv[i])

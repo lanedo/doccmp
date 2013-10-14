@@ -26,7 +26,7 @@ $item.pagecount
 $for result in db.results_for_doc(item.id):
 	<tr>
 	<td>
-	$db.sha_2_version(result.commitsha)
+	$result.version
 	</td>
 	<td>
 	<a <a href="details?uid=$item.id&sha=$result.commitsha">$result.commitsha</a>
@@ -39,7 +39,7 @@ $for result in db.results_for_doc(item.id):
 		${(int)(result[elt] * 100)} %
 		</td>
 	<td>
-	<a href="update?uid=$item.id&full=1&sha=$result.commitsha">↺</a>
+	<a href="update?uid=$item.id&full=1&path2LO=$result.path2LO">↺</a>
 	</td>
 	</tr>
 </tbody>
