@@ -4,6 +4,7 @@ import sys
 import os
 import shutil
 import hashlib
+import signal
 import time
 import glob
 from PIL import Image
@@ -12,6 +13,7 @@ import tempfile
 import subprocess
 import shlex
 import threading
+import psutil
 
 latest_lo = '/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/'
 
@@ -29,7 +31,15 @@ def create_folder_hierarchy_in(folder):
     os.makedirs(folder + '/O.L.O')
 
 def kill_subprocess(pid):
+    print ("Sub-process too slow: kill it!")
     pid.kill()
+    # ... we need to kill Xvfb process too
+    for process in psutil.process_iter():
+        if len(process.cmdline) > 0 and process.cmdline[0] == 'Xvfb':
+            print('Process found. terminate it.')
+            process.terminate()
+            break
+
 
 def print_to_pdf_from_word(filename, output_folder):
     print ("##############################################")
@@ -45,12 +55,12 @@ def print_to_pdf_from_word(filename, output_folder):
     # Execute command
     pid = subprocess.Popen(args)
     # 10 seconds max before kill
-    t = threading.Timer(10.0, kill_subprocess, [pid, ])
+    t = threading.Timer(15.0, kill_subprocess, [pid, ])
     t.start()
 
     while pid.poll() == None:
         # wait 10 ms
-        time.sleep(0.1)
+        time.sleep(1)
 
     t.cancel()
 
@@ -281,6 +291,13 @@ if __name__ == "__main__":
     count = len(sys.argv)
     if count > 1:
         outdir = '/tmp/document_compare/'
+
+        # Make sure outdir exists
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+            os.makedirs(outdir + '/originals/')
+            create_folder_hierarchy_in(outdir)
+
         libreoffice='/media/pierre-eric/309451c6-b1c2-4554-99a1-30452150b211/libreoffice-master-ro/'
         for i in range(1, len(sys.argv)):
             file_id = init_document_compare (sys.argv[i], outdir)

@@ -18,7 +18,7 @@ $item.pagecount
 <table border='1'>
 <thead>
 <tr>
-<th>Version</th><th>Commit SHA</th><th>Import in LO</th><th>LO->LO</th><th>LO->Word</th>
+<th>Version</th><th>Commit SHA</th><th>Import in LO</th><th>LO->LO</th><th>LO->Word</th><th>Re-evaluate</th>
 </tr>
 </thead>
 <tbody>
@@ -38,6 +38,9 @@ $for result in db.results_for_doc(item.id):
 		">
 		${(int)(result[elt] * 100)} %
 		</td>
+	<td>
+	<a href="update?uid=$item.id&full=1&sha=$result.commitsha">↺</a>
+	</td>
 	</tr>
 </tbody>
 </table>

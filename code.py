@@ -89,10 +89,15 @@ class update:
 				else:
 					shutil.copy(os.getcwd() + '/static/originals/' + str(i.uid) + row['extension'], '/tmp/')
 					
-					if results[0].total_version == len(lo):
-						config.DB.delete('scores', where='id = "' + str(i.uid) + '"')
-						a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], False, ))
-						a.start()
+					if len(results.list()) == len(lo):
+						# Update everyone
+						if i.sha == None:
+							config.DB.delete('scores', where='id = "' + str(i.uid) + '"')
+							a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], False, ))
+							a.start()
+						# Update one row
+						else:
+							print ("TODO")
 					else:
 						a = threading.Thread(target=worker, args=('/tmp/' + str(i.uid) + row['extension'], True, ))
 						a.start()
