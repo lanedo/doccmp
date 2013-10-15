@@ -41,7 +41,7 @@ class index:
 		config.DB.insert('items', id=uid, name=b, pagecount=-1, extension=ext)
 
 		# Start bg thread		
-		a = threading.Thread(target=worker, args=(tempfile, False, ))
+		a = threading.Thread(target=worker, args=(tempfile, lo, False, ))
 		a.start()
 
 		return render.base(view.listing())
